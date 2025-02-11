@@ -59,24 +59,31 @@
     </div>
 
     <script>
+        const maxDataPoints = 50;
+        const timeData = [];
+        const xData = [];
+        const yData = [];
+        const zData = [];
+
+        // Initialize chart
         const ctx = document.getElementById('sensorChart').getContext('2d');
         const chart = new Chart(ctx, {
             type: 'line',
             data: {
-                labels: [],
+                labels: timeData,
                 datasets: [{
                     label: 'X-Axis',
-                    data: [],
+                    data: xData,
                     borderColor: '#E74C3C',
                     tension: 0.4
                 }, {
                     label: 'Y-Axis',
-                    data: [],
+                    data: yData,
                     borderColor: '#27AE60',
                     tension: 0.4
                 }, {
                     label: 'Z-Axis',
-                    data: [],
+                    data: zData,
                     borderColor: '#3498DB',
                     tension: 0.4
                 }]
@@ -88,55 +95,46 @@
                         min: -2,
                         max: 2
                     }
+                },
+                animation: {
+                    duration: 0
                 }
             }
         });
-    </script>
-    <script>
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    const x = parseFloat(urlParams.get('x')) || 0;
-    const y = parseFloat(urlParams.get('y')) || 0;
-    const z = parseFloat(urlParams.get('z')) || 0;
 
-    // Update display
-    document.getElementById('x-value').textContent = x.toFixed(3);
-    document.getElementById('y-value').textContent = y.toFixed(3);
-    document.getElementById('z-value').textContent = z.toFixed(3);
+        function updateData(x, y, z) {
+            const now = new Date();
+            const timeStr = now.toLocaleTimeString();
 
-    // Update chart
-    const ctx = document.getElementById('sensorChart').getContext('2d');
-    const chart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: ['Current'],
-            datasets: [{
-                label: 'X-Axis',
-                data: [x],
-                borderColor: '#E74C3C',
-                tension: 0.4
-            }, {
-                label: 'Y-Axis',
-                data: [y],
-                borderColor: '#27AE60',
-                tension: 0.4
-            }, {
-                label: 'Z-Axis',
-                data: [z],
-                borderColor: '#3498DB',
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    min: -2,
-                    max: 2
-                }
+            // Update arrays
+            timeData.push(timeStr);
+            xData.push(x);
+            yData.push(y);
+            zData.push(z);
+
+            // Keep only last maxDataPoints
+            if (timeData.length > maxDataPoints) {
+                timeData.shift();
+                xData.shift();
+                yData.shift();
+                zData.shift();
             }
+
+            // Update chart
+            chart.update();
+
+            // Update text displays
+            document.getElementById('x-value').textContent = x.toFixed(3);
+            document.getElementById('y-value').textContent = y.toFixed(3);
+            document.getElementById('z-value').textContent = z.toFixed(3);
         }
-    });
-</script>
+
+        // Get URL parameters and update
+        const urlParams = new URLSearchParams(window.location.search);
+        const x = parseFloat(urlParams.get('x')) || 0;
+        const y = parseFloat(urlParams.get('y')) || 0;
+        const z = parseFloat(urlParams.get('z')) || 0;
+        updateData(x, y, z);
+    </script>
 </body>
 </html>
