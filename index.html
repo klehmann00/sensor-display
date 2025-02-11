@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>iPhone Sensor Data</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #2C3E50;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .data-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .sensor-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>iPhone Sensor Data</h1>
+        <div class="chart-container">
+            <canvas id="sensorChart"></canvas>
+        </div>
+        <div class="data-display">
+            <div class="sensor-card">
+                <h2 style="color: #E74C3C">X-Axis</h2>
+                <p id="x-value">0.000</p>
+            </div>
+            <div class="sensor-card">
+                <h2 style="color: #27AE60">Y-Axis</h2>
+                <p id="y-value">0.000</p>
+            </div>
+            <div class="sensor-card">
+                <h2 style="color: #3498DB">Z-Axis</h2>
+                <p id="z-value">0.000</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'X-Axis',
+                    data: [],
+                    borderColor: '#E74C3C',
+                    tension: 0.4
+                }, {
+                    label: 'Y-Axis',
+                    data: [],
+                    borderColor: '#27AE60',
+                    tension: 0.4
+                }, {
+                    label: 'Z-Axis',
+                    data: [],
+                    borderColor: '#3498DB',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        min: -2,
+                        max: 2
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
