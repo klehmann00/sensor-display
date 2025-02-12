@@ -87,10 +87,44 @@
         const database = firebase.database();
         const statusDiv = document.getElementById('connection-status');
 
-        // Initialize chart (keep the existing chart initialization code)
-        // ... chart code remains the same ...
+        // Initialize chart
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'X-Axis',
+                    data: [],
+                    borderColor: '#E74C3C',
+                    tension: 0.4
+                }, {
+                    label: 'Y-Axis',
+                    data: [],
+                    borderColor: '#27AE60',
+                    tension: 0.4
+                }, {
+                    label: 'Z-Axis',
+                    data: [],
+                    borderColor: '#3498DB',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        min: -2,
+                        max: 2
+                    }
+                },
+                animation: {
+                    duration: 0
+                }
+            }
+        });
 
-        // Updated Firebase listener
+        // Listen for sensor data
         const sensorRef = database.ref('sensorData');
         sensorRef.on('value', function(snapshot) {
             statusDiv.textContent = 'Connected - Receiving Data';
@@ -107,15 +141,15 @@
 
                 // Update chart
                 const now = new Date().toLocaleTimeString();
-                chartData.labels.push(now);
-                chartData.datasets[0].data.push(data.x);
-                chartData.datasets[1].data.push(data.y);
-                chartData.datasets[2].data.push(data.z);
+                chart.data.labels.push(now);
+                chart.data.datasets[0].data.push(data.x);
+                chart.data.datasets[1].data.push(data.y);
+                chart.data.datasets[2].data.push(data.z);
 
                 // Keep only last 20 points
-                if (chartData.labels.length > 20) {
-                    chartData.labels.shift();
-                    chartData.datasets.forEach(dataset => dataset.data.shift());
+                if (chart.data.labels.length > 20) {
+                    chart.data.labels.shift();
+                    chart.data.datasets.forEach(dataset => dataset.data.shift());
                 }
 
                 chart.update();
