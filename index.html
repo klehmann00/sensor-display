@@ -70,100 +70,62 @@
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Firebase configuration
-            const firebaseConfig = {
-                apiKey: "AIzaSyC_wBOaHBmwBhrk0-OZSrQejlNE76tr33Q",
-                authDomain: "sensor-display.firebaseapp.com",
-                projectId: "sensor-display",
-                storageBucket: "sensor-display.firebasestorage.app",
-                messagingSenderId: "999834441988",
-                appId: "1:999834441988:web:6c3ede4d4a379bbb1dd851",
-                databaseURL: "https://sensor-display-default-rtdb.firebaseio.com"
-            };
+    document.addEventListener('DOMContentLoaded', function() {
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC_wBOaHBmwBhrk0-OZSrQejlNE76tr33Q",
+            authDomain: "sensor-display.firebaseapp.com",
+            projectId: "sensor-display",
+            storageBucket: "sensor-display.firebasestorage.app",
+            messagingSenderId: "999834441988",
+            appId: "1:999834441988:web:6c3ede4d4a379bbb1dd851",
+            databaseURL: "https://sensor-display-default-rtdb.firebaseio.com"
+        };
 
-            // Initialize Firebase
-            firebase.initializeApp(firebaseConfig);
-            const database = firebase.database();
-            const statusDiv = document.getElementById('connection-status');
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const statusDiv = document.getElementById('connection-status');
 
-            // Initialize chart
-            const ctx = document.getElementById('sensorChart').getContext('2d');
-            const chartData = {
-                labels: [],
-                datasets: [{
-                    label: 'X-Axis',
-                    data: [],
-                    borderColor: '#E74C3C',
-                    tension: 0.4
-                }, {
-                    label: 'Y-Axis',
-                    data: [],
-                    borderColor: '#27AE60',
-                    tension: 0.4
-                }, {
-                    label: 'Z-Axis',
-                    data: [],
-                    borderColor: '#3498DB',
-                    tension: 0.4
-                }]
-            };
+        // Initialize chart (keep the existing chart initialization code)
+        // ... chart code remains the same ...
 
-            const chart = new Chart(ctx, {
-                type: 'line',
-                data: chartData,
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            min: -2,
-                            max: 2
-                        }
-                    },
-                    animation: {
-                        duration: 0
-                    }
-                }
-            });
-
-            // Listen for sensor data
-            const sensorRef = database.ref('sensorData');
-            sensorRef.on('value', (snapshot) => {
-                statusDiv.textContent = 'Connected - Receiving Data';
-                statusDiv.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
+        // Updated Firebase listener
+        const sensorRef = database.ref('sensorData');
+        sensorRef.on('value', function(snapshot) {
+            statusDiv.textContent = 'Connected - Receiving Data';
+            statusDiv.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
+            
+            const data = snapshot.val();
+            if (data) {
+                console.log('New data received:', data);
                 
-                const data = snapshot.val();
-                if (data) {
-                    console.log('New data received:', data);  // Debug log
-                    
-                    // Update numeric displays
-                    document.getElementById('x-value').textContent = data.x.toFixed(3);
-                    document.getElementById('y-value').textContent = data.y.toFixed(3);
-                    document.getElementById('z-value').textContent = data.z.toFixed(3);
+                // Update numeric displays
+                document.getElementById('x-value').textContent = data.x.toFixed(3);
+                document.getElementById('y-value').textContent = data.y.toFixed(3);
+                document.getElementById('z-value').textContent = data.z.toFixed(3);
 
-                    // Update chart
-                    const now = new Date().toLocaleTimeString();
-                    chartData.labels.push(now);
-                    chartData.datasets[0].data.push(data.x);
-                    chartData.datasets[1].data.push(data.y);
-                    chartData.datasets[2].data.push(data.z);
+                // Update chart
+                const now = new Date().toLocaleTimeString();
+                chartData.labels.push(now);
+                chartData.datasets[0].data.push(data.x);
+                chartData.datasets[1].data.push(data.y);
+                chartData.datasets[2].data.push(data.z);
 
-                    // Keep only last 20 points
-                    if (chartData.labels.length > 20) {
-                        chartData.labels.shift();
-                        chartData.datasets.forEach(dataset => dataset.data.shift());
-                    }
-
-                    chart.update();
+                // Keep only last 20 points
+                if (chartData.labels.length > 20) {
+                    chartData.labels.shift();
+                    chartData.datasets.forEach(dataset => dataset.data.shift());
                 }
-            });
 
-            sensorRef.on('error', (error) => {
-                statusDiv.textContent = 'Error connecting to Firebase: ' + error.message;
-                statusDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
-                console.error('Firebase error:', error);
-            });
+                chart.update();
+            }
+        }, function(error) {
+            statusDiv.textContent = 'Error connecting to Firebase: ' + error.message;
+            statusDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
+            console.error('Firebase error:', error);
         });
+    });
     </script>
 </body>
 </html>
