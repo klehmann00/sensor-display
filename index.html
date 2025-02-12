@@ -88,3 +88,98 @@
         }
     </style>
 </head>
+    <body>
+    <div class="container">
+        <h1 style="text-align: center;">iPhone Sensor Data</h1>
+        <div id="connection-status">Connecting to Firebase...</div>
+
+        <!-- Accelerometer Section -->
+        <div class="sensor-section">
+            <h2 class="sensor-title">Accelerometer (G)</h2>
+            <!-- Chart container -->
+            <div class="chart-container">
+                <canvas id="accelChart"></canvas>
+            </div>
+            <!-- Raw sensor values -->
+            <div class="data-display">
+                <div class="sensor-card">
+                    <h3 style="color: #E74C3C">X-Axis</h3>
+                    <p id="accel-x">0.000</p>
+                </div>
+                <div class="sensor-card">
+                    <h3 style="color: #27AE60">Y-Axis</h3>
+                    <p id="accel-y">0.000</p>
+                </div>
+                <div class="sensor-card">
+                    <h3 style="color: #3498DB">Z-Axis</h3>
+                    <p id="accel-z">0.000</p>
+                </div>
+            </div>
+            <!-- Example: Add calculated values for accelerometer -->
+            <!-- 
+            <div class="calculated-value">
+                <h3>Acceleration Magnitude</h3>
+                <p id="accel-magnitude">0.000</p>
+            </div>
+            -->
+        </div>
+
+        <!-- Gyroscope Section -->
+        <div class="sensor-section">
+            <h2 class="sensor-title">Gyroscope (rad/s)</h2>
+            <div class="chart-container">
+                <canvas id="gyroChart"></canvas>
+            </div>
+            <div class="data-display">
+                <div class="sensor-card">
+                    <h3 style="color: #E74C3C">X-Axis</h3>
+                    <p id="gyro-x">0.000</p>
+                </div>
+                <div class="sensor-card">
+                    <h3 style="color: #27AE60">Y-Axis</h3>
+                    <p id="gyro-y">0.000</p>
+                </div>
+                <div class="sensor-card">
+                    <h3 style="color: #3498DB">Z-Axis</h3>
+                    <p id="gyro-z">0.000</p>
+                </div>
+            </div>
+            <!-- Add your gyroscope calculations display here -->
+        </div>
+
+        <!-- Magnetometer Section -->
+        <div class="sensor-section">
+            <h2 class="sensor-title">Magnetometer (μT)</h2>
+            <div class="chart-container">
+                <canvas id="magChart"></canvas>
+            </div>
+            <div class="data-display">
+                <div class="sensor-card">
+                    <h3 style="color: #E74C3C">X-Axis</h3>
+                    <p id="mag-x">0.000</p>
+                </div>
+                <div class="sensor-card">
+                    <h3 style="color: #27AE60">Y-Axis</h3>
+                    <p id="mag-y">0.000</p>
+                </div>
+                <div class="sensor-card">
+                    <h3 style="color: #3498DB">Z-Axis</h3>
+                    <p id="mag-z">0.000</p>
+                </div>
+            </div>
+            <!-- Add your magnetometer calculations display here -->
+        </div>
+
+        <!-- Example: Add a new section for combined calculations -->
+        <!--
+        <div class="sensor-section">
+            <h2 class="sensor-title">Calculated Values</h2>
+            <div class="data-display">
+                <div class="sensor-card">
+                    <h3>Total Motion</h3>
+                    <p id="total-motion">0.000</p>
+                </div>
+            </div>
+        </div>
+        -->
+    </div>
