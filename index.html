@@ -4,6 +4,9 @@
     <title>iPhone Sensor Data</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <!-- Updated Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -34,11 +37,19 @@
             text-align: center;
             color: black;
         }
+        #connection-status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>iPhone Sensor Data</h1>
+        <div id="connection-status">Connecting to Firebase...</div>
         <div class="chart-container">
             <canvas id="sensorChart"></canvas>
         </div>
@@ -59,82 +70,100 @@
     </div>
 
     <script>
-        const maxDataPoints = 50;
-        const timeData = [];
-        const xData = [];
-        const yData = [];
-        const zData = [];
+        document.addEventListener('DOMContentLoaded', function() {
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyC_wBOaHBmwBhrk0-OZSrQejlNE76tr33Q",
+                authDomain: "sensor-display.firebaseapp.com",
+                projectId: "sensor-display",
+                storageBucket: "sensor-display.firebasestorage.app",
+                messagingSenderId: "999834441988",
+                appId: "1:999834441988:web:6c3ede4d4a379bbb1dd851",
+                databaseURL: "https://sensor-display-default-rtdb.firebaseio.com"
+            };
 
-        // Initialize chart
-        const ctx = document.getElementById('sensorChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: timeData,
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            const statusDiv = document.getElementById('connection-status');
+
+            // Initialize chart
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            const chartData = {
+                labels: [],
                 datasets: [{
                     label: 'X-Axis',
-                    data: xData,
+                    data: [],
                     borderColor: '#E74C3C',
                     tension: 0.4
                 }, {
                     label: 'Y-Axis',
-                    data: yData,
+                    data: [],
                     borderColor: '#27AE60',
                     tension: 0.4
                 }, {
                     label: 'Z-Axis',
-                    data: zData,
+                    data: [],
                     borderColor: '#3498DB',
                     tension: 0.4
                 }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        min: -2,
-                        max: 2
+            };
+
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            min: -2,
+                            max: 2
+                        }
+                    },
+                    animation: {
+                        duration: 0
                     }
-                },
-                animation: {
-                    duration: 0
                 }
-            }
+            });
+
+            // Listen for sensor data
+            const sensorRef = database.ref('sensorData');
+            sensorRef.on('value', (snapshot) => {
+                statusDiv.textContent = 'Connected - Receiving Data';
+                statusDiv.style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
+                
+                const data = snapshot.val();
+                if (data) {
+                    console.log('New data received:', data);  // Debug log
+                    
+                    // Update numeric displays
+                    document.getElementById('x-value').textContent = data.x.toFixed(3);
+                    document.getElementById('y-value').textContent = data.y.toFixed(3);
+                    document.getElementById('z-value').textContent = data.z.toFixed(3);
+
+                    // Update chart
+                    const now = new Date().toLocaleTimeString();
+                    chartData.labels.push(now);
+                    chartData.datasets[0].data.push(data.x);
+                    chartData.datasets[1].data.push(data.y);
+                    chartData.datasets[2].data.push(data.z);
+
+                    // Keep only last 20 points
+                    if (chartData.labels.length > 20) {
+                        chartData.labels.shift();
+                        chartData.datasets.forEach(dataset => dataset.data.shift());
+                    }
+
+                    chart.update();
+                }
+            });
+
+            sensorRef.on('error', (error) => {
+                statusDiv.textContent = 'Error connecting to Firebase: ' + error.message;
+                statusDiv.style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
+                console.error('Firebase error:', error);
+            });
         });
-
-        function updateData(x, y, z) {
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString();
-
-            // Update arrays
-            timeData.push(timeStr);
-            xData.push(x);
-            yData.push(y);
-            zData.push(z);
-
-            // Keep only last maxDataPoints
-            if (timeData.length > maxDataPoints) {
-                timeData.shift();
-                xData.shift();
-                yData.shift();
-                zData.shift();
-            }
-
-            // Update chart
-            chart.update();
-
-            // Update text displays
-            document.getElementById('x-value').textContent = x.toFixed(3);
-            document.getElementById('y-value').textContent = y.toFixed(3);
-            document.getElementById('z-value').textContent = z.toFixed(3);
-        }
-
-        // Get URL parameters and update
-        const urlParams = new URLSearchParams(window.location.search);
-        const x = parseFloat(urlParams.get('x')) || 0;
-        const y = parseFloat(urlParams.get('y')) || 0;
-        const z = parseFloat(urlParams.get('z')) || 0;
-        updateData(x, y, z);
     </script>
 </body>
 </html>
