@@ -8,104 +8,161 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <!-- ... rest of your head content ... -->
     <style>
-        /* ... keep existing styles ... */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #2C3E50;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .chart-container {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .data-display {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .sensor-card {
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            color: black;
+        }
+        #connection-status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-    <!-- ... keep existing body content ... -->
+    <div class="container">
+        <h1>iPhone Sensor Data</h1>
+        <div id="connection-status">Connecting to Firebase...</div>
+        <div class="data-display">
+            <div class="sensor-card">
+                <h2 style="color: #E74C3C">X-Axis</h2>
+                <p id="x-value">0.000</p>
+            </div>
+            <div class="sensor-card">
+                <h2 style="color: #27AE60">Y-Axis</h2>
+                <p id="y-value">0.000</p>
+            </div>
+            <div class="sensor-card">
+                <h2 style="color: #3498DB">Z-Axis</h2>
+                <p id="z-value">0.000</p>
+            </div>
+        </div>
+        <div class="chart-container">
+            <canvas id="sensorChart"></canvas>
+        </div>
+    </div>
 
     <script>
-        // Initialize Firebase with your config
-        const firebaseConfig = {
-            apiKey: "AIzaSyC_wBOaHBmwBhrk0-OZSrQejlNE76tr33Q",
-            authDomain: "sensor-display.firebaseapp.com",
-            projectId: "sensor-display",
-            storageBucket: "sensor-display.firebasestorage.app",
-            messagingSenderId: "999834441988",
-            appId: "1:999834441988:web:6c3ede4d4a379bbb1dd851",
-            databaseURL: "https://sensor-display-default-rtdb.firebaseio.com"
-        };
+        window.onload = function() {
+            console.log('Page loaded, initializing...');
+            
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyC_wBOaHBmwBhrk0-OZSrQejlNE76tr33Q",
+                authDomain: "sensor-display.firebaseapp.com",
+                databaseURL: "https://sensor-display-default-rtdb.firebaseio.com",
+                projectId: "sensor-display",
+                storageBucket: "sensor-display.firebasestorage.app",
+                messagingSenderId: "999834441988",
+                appId: "1:999834441988:web:6c3ede4d4a379bbb1dd851"
+            };
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const database = firebase.database();
+            const statusDiv = document.getElementById('connection-status');
 
-        // Create the chart
-        const ctx = document.getElementById('sensorChart').getContext('2d');
-        const chart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array(20).fill(''),
-                datasets: [{
-                    label: 'X-Axis',
-                    data: Array(20).fill(0),
-                    borderColor: '#E74C3C',
-                    tension: 0.4
-                }, {
-                    label: 'Y-Axis',
-                    data: Array(20).fill(0),
-                    borderColor: '#27AE60',
-                    tension: 0.4
-                }, {
-                    label: 'Z-Axis',
-                    data: Array(20).fill(0),
-                    borderColor: '#3498DB',
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        min: -2,
-                        max: 2
-                    }
+            // Initialize chart
+            const ctx = document.getElementById('sensorChart').getContext('2d');
+            const chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'X-Axis',
+                        data: [],
+                        borderColor: '#E74C3C',
+                        tension: 0.4
+                    }, {
+                        label: 'Y-Axis',
+                        data: [],
+                        borderColor: '#27AE60',
+                        tension: 0.4
+                    }, {
+                        label: 'Z-Axis',
+                        data: [],
+                        borderColor: '#3498DB',
+                        tension: 0.4
+                    }]
                 },
-                animation: false
-            }
-        });
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            min: -2,
+                            max: 2
+                        }
+                    }
+                }
+            });
 
-        // Connect to Firebase and listen for updates
-        const dbRef = firebase.database().ref('sensorData');
-        dbRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                // Update the numeric displays
-                document.getElementById('x-value').textContent = data.x.toFixed(3);
-                document.getElementById('y-value').textContent = data.y.toFixed(3);
-                document.getElementById('z-value').textContent = data.z.toFixed(3);
+            // Listen for data updates
+            const sensorRef = database.ref('sensorData');
+            console.log('Setting up Firebase listener...');
+            
+            sensorRef.on('value', function(snapshot) {
+                console.log('Data received:', snapshot.val());
+                const data = snapshot.val();
+                if (data) {
+                    // Update status
+                    statusDiv.textContent = 'Last update: ' + new Date().toLocaleTimeString();
+                    
+                    // Update values
+                    document.getElementById('x-value').textContent = data.x.toFixed(3);
+                    document.getElementById('y-value').textContent = data.y.toFixed(3);
+                    document.getElementById('z-value').textContent = data.z.toFixed(3);
 
-                // Update the chart
-                const now = new Date().toLocaleTimeString();
-                
-                // Shift all data points left
-                chart.data.labels.shift();
-                chart.data.labels.push(now);
-                
-                chart.data.datasets[0].data.shift();
-                chart.data.datasets[0].data.push(data.x);
-                
-                chart.data.datasets[1].data.shift();
-                chart.data.datasets[1].data.push(data.y);
-                
-                chart.data.datasets[2].data.shift();
-                chart.data.datasets[2].data.push(data.z);
-                
-                chart.update('none'); // Update without animation
-            }
-        });
+                    // Update chart
+                    const now = new Date().toLocaleTimeString();
+                    chart.data.labels.push(now);
+                    chart.data.datasets[0].data.push(data.x);
+                    chart.data.datasets[1].data.push(data.y);
+                    chart.data.datasets[2].data.push(data.z);
 
-        // Add connection status indicator
-        dbRef.on('value', () => {
-            document.getElementById('connection-status').textContent = 'Connected - Receiving Data';
-            document.getElementById('connection-status').style.backgroundColor = 'rgba(39, 174, 96, 0.2)';
-        });
+                    // Keep only last 30 points
+                    if (chart.data.labels.length > 30) {
+                        chart.data.labels.shift();
+                        chart.data.datasets.forEach(dataset => dataset.data.shift());
+                    }
 
-        dbRef.on('disconnected', () => {
-            document.getElementById('connection-status').textContent = 'Disconnected';
-            document.getElementById('connection-status').style.backgroundColor = 'rgba(231, 76, 60, 0.2)';
-        });
+                    chart.update('none'); // Update without animation
+                }
+            });
+
+            // Error handling
+            sensorRef.on('error', function(error) {
+                console.error('Firebase error:', error);
+                statusDiv.textContent = 'Error: ' + error.message;
+            });
+        };
     </script>
 </body>
 </html>
