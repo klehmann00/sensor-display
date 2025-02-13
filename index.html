@@ -367,6 +367,11 @@
                     }
                 }
             });
-
-            database.ref(`users/${userId}/sensorData`).on('error', function(error) {
-                console.error('
+                database.ref(`users/${userId}/sensorData`).on('error', function(error) {
+                console.error('Firebase error:', error);
+                statusDiv.textContent = 'Error: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>
